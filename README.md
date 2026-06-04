@@ -36,10 +36,10 @@ Step 2: Add your secrets
 
     Name              Value (example)
     ─────────         ─────────────────────────────────
-    DEEPSEEK_KEY      sk-b5cced03336b426e9fcd6b7db21fad7a
+    DEEPSEEK_KEY      sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx
     EMAIL_PROVIDER    qq
-    EMAIL_USER        1809345139@qq.com
-    EMAIL_AUTH        bchssapbdxqaegef   (SMTP auth code, NOT password)
+    EMAIL_USER        yourname@qq.com
+    EMAIL_AUTH        xxxxxxxxxxxxxxxx   (SMTP auth code, NOT password)
 
   Optional: OPENAI_KEY, CLAUDE_KEY (Admin Key required)
 

@@ -12,7 +12,7 @@ First run after Fork / Fork 后首次运行:
   Balance / 余额: CNY 6.93
   avg_24h: 2.314   avg_7d: 1.8462   predicted: 3.75 days   status: ok
   Alert: L1 — SENDING / 发送中...
-  Email sent: 1809345139@qq.com -> 1809345139@qq.com via smtp.qq.com:587
+  Email sent: yourname@qq.com -> yourname@qq.com via smtp.qq.com:587
 
 [openai] Fetching... / 获取数据...
   Balance / 余额: USD 45.20

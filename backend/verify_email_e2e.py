@@ -1,16 +1,20 @@
 """
 QQ Email Notification E2E Test
 ===============================
-Real QQ email account: 1809345139@qq.com
-Auth code: bchssapbdxqaegef
-Tests: SMTP connection, test email, L1/L2/L3, dedup, upgrade, dashboard
+Tests: SMTP connection, test email, L1/L2/L3, dedup, upgrade, dashboard.
+
+Usage: python verify_email_e2e.py <email> <auth_code> [recipient]
 """
 import sys, os, json, asyncio
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
-EMAIL_USER = "1809345139@qq.com"
-EMAIL_AUTH = "bchssapbdxqaegef"
-EMAIL_TO = "1809345139@qq.com"
+if len(sys.argv) < 3:
+    print("Usage: python verify_email_e2e.py <email> <auth_code> [recipient]")
+    sys.exit(1)
+
+EMAIL_USER = sys.argv[1]
+EMAIL_AUTH = sys.argv[2]
+EMAIL_TO = sys.argv[3] if len(sys.argv) > 3 else sys.argv[1]
 
 results = {}
 def record(name, passed, detail=""):
