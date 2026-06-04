@@ -1,0 +1,27 @@
+{
+  "qq": {
+    "label": "QQ Mail",
+    "smtp_host": "smtp.qq.com",
+    "smtp_port": 587
+  },
+  "gmail": {
+    "label": "Gmail",
+    "smtp_host": "smtp.gmail.com",
+    "smtp_port": 587
+  },
+  "163": {
+    "label": "163 Mail",
+    "smtp_host": "smtp.163.com",
+    "smtp_port": 25
+  },
+  "outlook": {
+    "label": "Outlook",
+    "smtp_host": "smtp.office365.com",
+    "smtp_port": 587
+  },
+  "custom": {
+    "label": "Custom SMTP",
+    "smtp_host": "",
+    "smtp_port": 587
+  }
+}

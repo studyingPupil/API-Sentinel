@@ -1,0 +1,220 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>API Sentinel — AI API Usage Monitor / AI API 额度监控</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Helvetica Neue",Arial,"PingFang SC","Microsoft YaHei",sans-serif;background:#f5f5f5;color:#333;min-height:100vh}
+.header{background:#fff;border-bottom:1px solid #e5e5e5;padding:0 24px;height:56px;display:flex;align-items:center;justify-content:space-between}
+.header h1{font-size:18px;font-weight:700}.header .updated{font-size:12px;color:#999}
+.container{max-width:1100px;margin:0 auto;padding:24px 16px}
+.empty{text-align:center;padding:80px 20px;color:#999}.empty h2{font-size:20px;margin-bottom:8px}.empty p{font-size:14px;line-height:1.8}
+.cards{display:grid;grid-template-columns:repeat(auto-fill,minmax(320px,1fr));gap:16px;margin-bottom:32px}
+.card{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06)}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:12px}
+.badge{font-size:11px;font-weight:600;padding:2px 8px;border-radius:4px;text-transform:uppercase}
+.badge-openai{background:#e8f5e9;color:#2e7d32}.badge-claude{background:#fff3e0;color:#e65100}
+.badge-deepseek{background:#e3f2fd;color:#1565c0}.badge-glm{background:#f3e5f5;color:#7b1fa2}
+.alias{font-size:13px;color:#888}.balance{font-size:28px;font-weight:700;margin-bottom:4px}
+.balance-sub{font-size:13px;color:#999;margin-bottom:12px}
+.bar{height:6px;background:#eee;border-radius:3px;margin-bottom:16px;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s}
+.bar-green{background:#4caf50}.bar-yellow{background:#ff9800}.bar-red{background:#f44336}
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-bottom:14px}
+.stat-label{font-size:11px;color:#aaa;margin-bottom:2px}
+.stat-value{font-size:15px;font-weight:600}
+.prediction{display:inline-block;font-size:12px;font-weight:600;padding:3px 10px;border-radius:12px}
+.pred-green{background:#e8f5e9;color:#2e7d32}.pred-yellow{background:#fff8e1;color:#f57f17}
+.pred-orange{background:#fff3e0;color:#e65100}.pred-red{background:#ffebee;color:#c62828}
+.pred-gray{background:#f5f5f5;color:#999}
+.chart-section{background:#fff;border-radius:10px;padding:20px;box-shadow:0 1px 3px rgba(0,0,0,.06);margin-bottom:32px}
+.chart-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px}
+.chart-header h2{font-size:16px}.chart-tabs{display:flex;gap:4px}
+.chart-tab{font-size:12px;padding:4px 12px;border-radius:6px;border:1px solid #ddd;background:#fff;cursor:pointer}.chart-tab.active{background:#1976d2;color:#fff;border-color:#1976d2}
+.chart-wrap{height:300px;position:relative}
+.footer{text-align:center;padding:32px 16px;font-size:12px;color:#bbb}
+.footer a{color:#1976d2}
+</style>
+</head>
+<body>
+
+<div class="header">
+  <h1>API Sentinel</h1>
+  <span class="updated" id="updated">—</span>
+</div>
+
+<div class="container">
+
+  <!-- empty state / 空状态 -->
+  <div class="empty" id="empty">
+    <h2>No data yet / 暂无数据</h2>
+    <p>
+      Waiting for the first GitHub Actions check.<br>
+      等待 GitHub Actions 首次运行。<br><br>
+      Make sure you've added your API keys in<br>
+      请确认已在仓库 Settings → Secrets 中添加 API Key。<br><br>
+      <a href="https://github.com/YOUR_USERNAME/api-sentinel/blob/main/config.example.yml" id="configLink" target="_blank">
+        View config template / 查看配置模板
+      </a>
+    </p>
+  </div>
+
+  <!-- cards / 卡片 -->
+  <div class="cards" id="cards"></div>
+
+  <!-- chart / 图表 -->
+  <div class="chart-section" id="chartSection" style="display:none">
+    <div class="chart-header">
+      <h2>Balance Trend / 余额趋势</h2>
+    </div>
+    <div class="chart-wrap"><canvas id="chart"></canvas></div>
+  </div>
+
+  <div class="footer">
+    Powered by <a href="https://github.com" target="_blank">GitHub Actions</a> &middot;
+    Updated hourly / 每小时更新 &middot;
+    <a href="https://github.com/YOUR_USERNAME/api-sentinel" id="sourceLink" target="_blank">Source / 源码</a>
+  </div>
+</div>
+
+<script>
+const PROVIDER_LABELS = {
+  openai:   { en:"OpenAI",  zh:"OpenAI" },
+  claude:   { en:"Claude",  zh:"Claude" },
+  deepseek: { en:"DeepSeek",zh:"DeepSeek" },
+  glm:      { en:"GLM",     zh:"智谱 GLM" },
+};
+const BADGE_CLASS = {openai:"badge-openai",claude:"badge-claude",deepseek:"badge-deepseek",glm:"badge-glm"};
+
+function predClass(days){
+  if(days===null||days===undefined) return "pred-gray";
+  if(days>7) return "pred-green";
+  if(days>3) return "pred-yellow";
+  if(days>1) return "pred-orange";
+  return "pred-red";
+}
+function predLabel(days){
+  if(days===null||days===undefined) return "No data / 无数据";
+  if(days>7) return Math.round(days)+"d left / 天后耗尽";
+  if(days>3) return Math.round(days)+"d left / 天后耗尽";
+  if(days>1) return Math.round(days*24)+"h left / 小时后耗尽";
+  return Math.round(days*24)+"h left / 小时后耗尽";
+}
+function barClass(ratio){
+  if(ratio>0.5) return "bar-green";
+  if(ratio>0.2) return "bar-yellow";
+  return "bar-red";
+}
+
+function render(d){
+  document.getElementById("updated").textContent =
+    "Updated / 更新: " + (d.updated_at ? new Date(d.updated_at).toLocaleString() : "—");
+
+  var providers = d.providers || {};
+  var names = Object.keys(providers);
+
+  if(names.length===0){
+    document.getElementById("empty").style.display = "";
+    document.getElementById("cards").innerHTML = "";
+    document.getElementById("chartSection").style.display = "none";
+    return;
+  }
+  document.getElementById("empty").style.display = "none";
+
+  var html = "";
+  names.forEach(function(name){
+    var p = providers[name];
+    var m = p.metrics || {};
+    var snaps = p.snapshots || [];
+    var latest = snaps.length ? snaps[snaps.length-1] : null;
+    var remaining = latest ? latest.remaining_credits : 0;
+    var total = latest ? latest.total_credits : 0;
+    var curr = latest ? latest.currency : "USD";
+    var sym = curr==="CNY"?"Y":"$";
+    var hasTotal = total > 0;
+    var ratio = hasTotal ? remaining/total : 0;
+    var label = PROVIDER_LABELS[name] || {en:name,zh:name};
+    var days = m.predicted_days;
+
+    html += '<div class="card">';
+    html += '<div class="card-header">';
+    html += '<span class="badge '+ (BADGE_CLASS[name]||"") +'">'+label.en+' / '+label.zh+'</span>';
+    html += '</div>';
+    html += '<div class="alias">'+(p.alias||name)+'</div>';
+    html += '<div class="balance">'+sym+remaining.toFixed(2)+'</div>';
+    html += '<div class="balance-sub">'+(hasTotal ? "/ "+sym+total.toFixed(2) : "Total not provided / 未提供总额度")+'</div>';
+    if(hasTotal){
+      html += '<div class="bar"><div class="bar-fill '+barClass(ratio)+'" style="width:'+Math.max(ratio*100,2)+'%"></div></div>';
+    }
+    html += '<div class="stats">';
+    html += '<div><div class="stat-label">24h / '+"日均"+'</div><div class="stat-value">'+(m.avg_24h!=null?sym+m.avg_24h.toFixed(2):"--")+'</div></div>';
+    html += '<div><div class="stat-label">7d avg / '+"周均"+'</div><div class="stat-value">'+(m.avg_7d!=null?sym+m.avg_7d.toFixed(2):"--")+'</div></div>';
+    html += '</div>';
+    html += '<span class="prediction '+predClass(days)+'">'+predLabel(days)+'</span>';
+    html += '</div>';
+  });
+  document.getElementById("cards").innerHTML = html;
+
+  // Chart
+  renderChart(providers);
+  document.getElementById("chartSection").style.display = "";
+}
+
+var chartInstance = null;
+function renderChart(providers){
+  var names = Object.keys(providers);
+  if(names.length===0) return;
+  var first = providers[names[0]];
+  var snaps = first.snapshots || [];
+  var labels = snaps.map(function(s){return s.fetched_at.slice(5,16).replace("T"," ")});
+  var datasets = names.map(function(name,i){
+    var colors = ["#1976d2","#e65100","#2e7d32","#7b1fa2"];
+    var s = (providers[name].snapshots||[]).map(function(x){return x.remaining_credits});
+    return {
+      label: (PROVIDER_LABELS[name]||{en:name}).en+" / "+(PROVIDER_LABELS[name]||{zh:name}).zh,
+      data:s,borderColor:colors[i%4],backgroundColor:"transparent",
+      tension:.3,pointRadius:1,borderWidth:2
+    };
+  });
+
+  var ctx = document.getElementById("chart").getContext("2d");
+  if(chartInstance) chartInstance.destroy();
+  chartInstance = new Chart(ctx,{
+    type:"line",
+    data:{labels:labels,datasets:datasets},
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{position:"bottom",labels:{boxWidth:12,font:{size:11}}}},
+      scales:{
+        y:{title:{display:true,text:"Balance / 余额",font:{size:11}}},
+        x:{ticks:{maxTicksLimit:15,font:{size:10}}}
+      }
+    }
+  });
+}
+
+// Auto-replace YOUR_USERNAME from the current URL
+(function(){
+  var host = window.location.hostname;  // username.github.io
+  var path = window.location.pathname; // /repo-name/
+  var username = host.replace(".github.io","");
+  var repo = path.split("/")[1] || "api-sentinel";
+  if(username && username!=="YOUR_USERNAME"){
+    var base = "https://github.com/"+username+"/"+repo;
+    var el = document.getElementById("configLink");
+    if(el) el.href = base + "/blob/main/config.example.yml";
+    el = document.getElementById("sourceLink");
+    if(el) el.href = base;
+  }
+})();
+
+fetch("data.json?"+Date.now())
+  .then(function(r){return r.json()})
+  .then(render)
+  .catch(function(){});
+</script>
+</body>
+</html>

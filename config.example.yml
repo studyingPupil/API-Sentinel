@@ -1,0 +1,40 @@
+# ═══════════════════════════════════════════════════════════
+#  API Sentinel — GitHub Pages Mode / 配置模板
+# ═══════════════════════════════════════════════════════════
+#
+#  How to use / 使用方式:
+#    Fork this repo → Settings → Secrets and variables → Actions
+#    Add the secrets below. Never commit real values to this file.
+#    仓库右上角 Fork → Settings → Secrets → 新建以下 secrets
+#
+#  Dashboard: https://YOUR_USERNAME.github.io/api-sentinel/
+# ═══════════════════════════════════════════════════════════
+
+# ── 1. API Keys (at least one) / API 密钥 (至少填一个) ──
+
+DEEPSEEK_KEY: "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"
+#OPENAI_KEY:  "sk-xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx"    # optional
+#CLAUDE_KEY:  "sk-ant-admin-xxxxxxxxxxxxxxxxxxxxxxx"   # optional, needs Admin Key
+
+# ── 2. Email Notification / 邮件通知 ──
+
+EMAIL_PROVIDER: "qq"                   # qq / gmail / 163 / outlook / custom
+EMAIL_USER:     "yourname@qq.com"      # your email / 你的邮箱
+EMAIL_AUTH:     "your-smtp-auth-code"  # SMTP auth code, NOT login password / 授权码非邮箱密码
+EMAIL_TO:       "yourname@qq.com"      # recipient / 收件人 (default: same as EMAIL_USER)
+
+# If EMAIL_PROVIDER = custom, also set / 自定义 SMTP 还需:
+#SMTP_HOST: "smtp.your-company.com"
+#SMTP_PORT: "587"
+
+# ── 3. Alert Thresholds (optional) / 预警阈值 (可选) ──
+
+#ALERT_L1_DAYS: "3"       # 3 days → low balance reminder / 额度偏低提醒
+#ALERT_L2_DAYS: "1"       # 24 hours → warning / 即将耗尽警告
+#ALERT_L3_DAYS: "0.25"    # 6 hours → critical / 紧急：马上耗尽
+
+# ── 4. Schedule (edit .github/workflows/check.yml) / 检查频率 ──
+#
+#   cron: "0 * * * *"     = every hour / 每小时
+#   cron: "*/30 * * * *"  = every 30 minutes / 每30分钟
+#   cron: "0 */6 * * *"   = every 6 hours / 每6小时
