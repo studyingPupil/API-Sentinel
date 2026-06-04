@@ -24,9 +24,15 @@ EMAIL_PROVIDERS = {
     "custom":  {"host": "", "port": 587},
 }
 
-L1_DAYS = float(os.getenv("ALERT_L1_DAYS", "3"))
-L2_DAYS = float(os.getenv("ALERT_L2_DAYS", "1"))
-L3_DAYS = float(os.getenv("ALERT_L3_DAYS", "0.25"))
+def _env_float(name, default):
+    val = os.getenv(name, "")
+    if not val or val.strip() == "":
+        return default
+    return float(val)
+
+L1_DAYS = _env_float("ALERT_L1_DAYS", 3.0)
+L2_DAYS = _env_float("ALERT_L2_DAYS", 1.0)
+L3_DAYS = _env_float("ALERT_L3_DAYS", 0.25)
 
 DATA_FILE = "docs/data.json"
 
