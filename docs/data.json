@@ -283,19 +283,26 @@
           "used_credits": 0.0,
           "remaining_credits": 4.93,
           "currency": "CNY"
+        },
+        {
+          "fetched_at": "2026-06-09T11:25:32.392750+00:00",
+          "total_credits": 0.0,
+          "used_credits": 0.0,
+          "remaining_credits": 4.93,
+          "currency": "CNY"
         }
       ],
       "last_alert": "",
       "metrics": {
         "avg_24h": null,
-        "avg_7d": 0.234,
-        "predicted_days": 21.07,
-        "predicted_date": "2026-06-30T09:38:03.366441+00:00",
+        "avg_7d": 0.227,
+        "predicted_days": 21.72,
+        "predicted_date": "2026-07-01T04:43:17.951413+00:00",
         "status": "ok"
       }
     }
   },
   "alerts_sent": {},
-  "updated_at": "2026-06-09T07:56:37.886066+00:00",
+  "updated_at": "2026-06-09T11:25:32.811562+00:00",
   "deploy_url": "https://studyingPupil.github.io/API-Sentinel/"
 }
