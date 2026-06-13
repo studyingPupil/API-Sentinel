@@ -479,6 +479,13 @@
           "used_credits": 0.0,
           "remaining_credits": 4.93,
           "currency": "CNY"
+        },
+        {
+          "fetched_at": "2026-06-13T14:08:28.815096+00:00",
+          "total_credits": 0.0,
+          "used_credits": 0.0,
+          "remaining_credits": 4.93,
+          "currency": "CNY"
         }
       ],
       "last_alert": "",
@@ -492,6 +499,6 @@
     }
   },
   "alerts_sent": {},
-  "updated_at": "2026-06-13T11:18:41.723010+00:00",
+  "updated_at": "2026-06-13T14:08:29.358011+00:00",
   "deploy_url": "https://studyingPupil.github.io/API-Sentinel/"
 }
